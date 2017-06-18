@@ -9,6 +9,8 @@ set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 
 set(sources src/main.cpp src/tools.cpp src/FusionEKF.cpp src/kalman_filter.cpp src/tools.h src/FusionEKF.h src/kalman_filter.h)
 
+set(sources3 src/laser3/main.cpp src/laser3/tracking.cpp src/laser3/kalman_filter.cpp)
+
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
 
@@ -24,3 +26,9 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(ExtendedKF ${sources})
 
 target_link_libraries(ExtendedKF z ssl uv uWS)
+
+add_executable(Assignment src/assignment/Assignment.cpp src/assignment/Assignment.h)
+
+add_executable(Laser3 ${sources3})
+
+add_executable(Jacobian src/assignment/jacobian.cpp)

@@ -108,16 +108,16 @@ void filter(VectorXd &x, MatrixXd &P) {
         MatrixXd S = H * P * H.transpose() + R;
         MatrixXd K = P * H.transpose() * S.inverse();
 
-         // new state
+        // new state
         x = x + K * y;
         P = (I - K * H) * P;
 
-         // KF Prediction step
+        // KF Prediction step
         x = F * x;
         P = F * P * F.transpose() + Q;
 
-        std::cout << "x=" << std::endl <<  x << std::endl;
-        std::cout << "P=" << std::endl <<  P << std::endl;
+        std::cout << "x=" << std::endl << x << std::endl;
+        std::cout << "P=" << std::endl << P << std::endl;
 
 
     }

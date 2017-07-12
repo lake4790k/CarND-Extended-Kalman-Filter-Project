@@ -7,7 +7,7 @@ using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-MatrixXd CalculateJacobian(const VectorXd& x_state);
+MatrixXd CalculateJacobian(const VectorXd &x_state);
 
 int main() {
 
@@ -27,9 +27,9 @@ int main() {
     return 0;
 }
 
-MatrixXd CalculateJacobian(const VectorXd& x_state) {
+MatrixXd CalculateJacobian(const VectorXd &x_state) {
 
-    MatrixXd Hj(3,4);
+    MatrixXd Hj(3, 4);
     //recover state parameters
     float px = x_state(0);
     float py = x_state(1);
@@ -38,7 +38,7 @@ MatrixXd CalculateJacobian(const VectorXd& x_state) {
 
     //TODO: YOUR CODE HERE
 
-    if (px+py==0) {
+    if (px + py == 0) {
         cout << "division by 0";
         return Hj;
     }
@@ -47,9 +47,9 @@ MatrixXd CalculateJacobian(const VectorXd& x_state) {
     float sqrtXy2 = sqrt(xy2);
     float sqrtXy32 = pow(xy2, 1.5);
 
-    Hj <<   px / sqrtXy2, py / sqrtXy2, 0, 0,
+    Hj << px / sqrtXy2, py / sqrtXy2, 0, 0,
             -py / xy2, px / xy2, 0, 0,
-            py*(vx*py - vy*px) / sqrtXy32, px*(vy*px - vx*py) / sqrtXy32,
+            py * (vx * py - vy * px) / sqrtXy32, px * (vy * px - vx * py) / sqrtXy32,
             px / sqrtXy2, py / sqrtXy2;
 
     return Hj;

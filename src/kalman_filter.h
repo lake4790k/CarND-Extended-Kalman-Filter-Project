@@ -2,8 +2,10 @@
 #define KALMAN_FILTER_H_
 
 #include "Eigen/Dense"
-#include "tools.h"
 #include <iostream>
+
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
 
 class KalmanFilter {
 public:
@@ -41,7 +43,6 @@ public:
     void UpdateEKF(const Eigen::VectorXd &z);
 
 private:
-    Tools tools;
 
     Eigen::MatrixXd R_laser_;
     Eigen::MatrixXd R_radar_;
@@ -52,7 +53,9 @@ private:
     void updateF(const double dt);
     void updateQ(const double dt);
 
-    void updateXandP(const Eigen::VectorXd &z, const Eigen::VectorXd &z_pred);
+    void updateXandP(const VectorXd &z, const VectorXd &z_pred);
+
+    MatrixXd CalculateJacobian(const VectorXd& x_state);
 
 };
 

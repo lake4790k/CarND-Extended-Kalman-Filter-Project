@@ -2,29 +2,80 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using namespace std;
 
-KalmanFilter::KalmanFilter() {}
+KalmanFilter::KalmanFilter() {
+    R_laser_ = MatrixXd(2, 2);
+    R_radar_ = MatrixXd(3, 3);
+    H_laser_ = MatrixXd(2, 4);
+
+    R_laser_ << 0.0225, 0,
+            0, 0.0225;
+
+    R_radar_ << 0.09, 0, 0,
+            0, 0.0009, 0,
+            0, 0, 0.09;
+
+    H_laser_ << 1, 0, 0, 0,
+            0, 1, 0, 0;
+
+    x_ = VectorXd(4);
+
+    F_ = MatrixXd(4, 4);
+    F_ << 1, 0, 1, 0,
+            0, 1, 0, 1,
+            0, 0, 1, 0,
+            0, 0, 0, 1;
+
+    Q_ = MatrixXd(4, 4);
+
+    P_ = MatrixXd(4, 4);
+    P_ << 1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1000, 0,
+            0, 0, 0, 1000;
+}
 
 KalmanFilter::~KalmanFilter() {}
 
-void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
-                        MatrixXd &H_in, MatrixXd &R_in, MatrixXd &Q_in) {
-  x_ = x_in;
-  P_ = P_in;
-  F_ = F_in;
-  H_ = H_in;
-  R_ = R_in;
-  Q_ = Q_in;
-}
+void KalmanFilter::Predict(const double dt) {
+    updateF(dt);
+    updateQ(dt);
 
-void KalmanFilter::Predict() {
     x_ = F_ * x_;
     MatrixXd Ft = F_.transpose();
     P_ = F_ * P_ * Ft + Q_;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
+    H_ = H_laser_;
     VectorXd z_pred = H_ * x_;
+    R_ = R_laser_;
+    updateXandP(z, z_pred);
+}
+
+void KalmanFilter::UpdateEKF(const VectorXd &z) {
+    const double px = x_(0);
+    const double py = x_(1);
+    const double vx = x_(2);
+    const double vy = x_(3);
+
+    const double rho = sqrt(px * px + py * py);
+    const double phi = atan2(py, px);
+    double rho_dot = 0.;
+    if (fabs(rho) > 0.0001) {
+        rho_dot = (px * vx + py * vy) / rho;
+    }
+    VectorXd z_pred(3);
+    z_pred << rho, phi, rho_dot;
+
+    R_ = R_radar_;
+    H_ = tools.CalculateJacobian(x_);
+
+    updateXandP(z, z_pred);
+}
+
+void KalmanFilter::updateXandP(const VectorXd &z, const VectorXd &z_pred) {
     VectorXd y = z - z_pred;
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
@@ -38,9 +89,21 @@ void KalmanFilter::Update(const VectorXd &z) {
     P_ = (I - K * H_) * P_;
 }
 
-void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
+void KalmanFilter::updateF(const double dt) {
+    F_(0, 2) = dt;
+    F_(1, 3) = dt;
+}
+
+void KalmanFilter::updateQ(const double dt) {
+    double noise_ax = 9;
+    double noise_ay = 9;
+
+    double dt2 = dt * dt;
+    double dt3 = dt2 * dt;
+    double dt4 = dt3 * dt;
+
+    Q_ << dt4 / 4 * noise_ax, 0, dt3 / 2 * noise_ax, 0,
+            0, dt4 / 4 * noise_ay, 0, dt3 / 2 * noise_ay,
+            dt3 / 2 * noise_ax, 0, dt2 * noise_ax, 0,
+            0, dt3 / 2 * noise_ay, 0, dt2 * noise_ay;
 }

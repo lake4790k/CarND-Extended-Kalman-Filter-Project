@@ -38,6 +38,21 @@ KalmanFilter::KalmanFilter() {
 
 KalmanFilter::~KalmanFilter() {}
 
+void KalmanFilter::initRadar(const VectorXd &z) {
+    double rho = z(0);
+    double phi = z(1);
+    double px = rho * cos(phi);
+    double py  = rho * sin(phi);
+    x_ << px, py, 0, 0;
+}
+
+void KalmanFilter::initLidar(const VectorXd &z) {
+    const double px = z(0);
+    const double py = z(1);
+    x_ << px, py, 0, 0;
+}
+
+
 void KalmanFilter::Predict(const double dt) {
     updateF(dt);
     updateQ(dt);
@@ -77,6 +92,12 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
 void KalmanFilter::updateXandP(const VectorXd &z, const VectorXd &z_pred) {
     VectorXd y = z - z_pred;
+    while (y(1) < -M_PI) {
+        y(1) += 2*M_PI;
+    }
+    while (y(1) > M_PI) {
+        y(1) -= 2*M_PI;
+    }
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
     MatrixXd Si = S.inverse();

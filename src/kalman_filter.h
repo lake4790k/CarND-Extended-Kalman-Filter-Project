@@ -30,6 +30,10 @@ public:
 
     virtual ~KalmanFilter();
 
+    void initRadar(const VectorXd &z);
+
+    void initLidar(const VectorXd &z);
+
     void Predict(const double dt);
 
     void Update(const Eigen::VectorXd &z);
@@ -47,6 +51,7 @@ private:
     void updateQ(const double dt);
 
     void updateXandP(const Eigen::VectorXd &z, const Eigen::VectorXd &z_pred);
+
 };
 
 #endif

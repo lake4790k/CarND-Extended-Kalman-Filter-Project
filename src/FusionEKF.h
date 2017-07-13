@@ -27,7 +27,6 @@ private:
     long long previous_timestamp_;
 
 
-    void initialize(const MeasurementPackage &measurement_pack);
 };
 
 #endif

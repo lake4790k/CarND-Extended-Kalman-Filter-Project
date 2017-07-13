@@ -4,7 +4,7 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std;
 
-KalmanFilter::KalmanFilter() {
+KalmanFilter::KalmanFilter() : lastDt_(-1) {
     R_laser_ = MatrixXd(2, 2);
     R_radar_ = MatrixXd(3, 3);
     H_laser_ = MatrixXd(2, 4);
@@ -42,7 +42,10 @@ void KalmanFilter::initRadar(const VectorXd &z) {
     double rho = z(0);
     double phi = z(1);
     double px = rho * cos(phi);
-    double py  = rho * sin(phi);
+    double py = rho * sin(phi);
+    // Although radar gives velocity data in the form of the range rate
+    // a radar measurement does not contain enough information
+    // to determine the state variable velocities
     x_ << px, py, 0, 0;
 }
 
@@ -54,12 +57,14 @@ void KalmanFilter::initLidar(const VectorXd &z) {
 
 
 void KalmanFilter::Predict(const double dt) {
-    updateF(dt);
-    updateQ(dt);
+    if (fabs(dt - lastDt_) > 0.00001) {
+        updateF(dt);
+        updateQ(dt);
+        lastDt_ = dt;
+    }
 
     x_ = F_ * x_;
-    MatrixXd Ft = F_.transpose();
-    P_ = F_ * P_ * Ft + Q_;
+    P_ = F_ * P_ * F_.transpose() + Q_;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
@@ -93,10 +98,10 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 void KalmanFilter::updateXandP(const VectorXd &z, const VectorXd &z_pred) {
     VectorXd y = z - z_pred;
     while (y(1) < -M_PI) {
-        y(1) += 2*M_PI;
+        y(1) += 2 * M_PI;
     }
     while (y(1) > M_PI) {
-        y(1) -= 2*M_PI;
+        y(1) -= 2 * M_PI;
     }
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;

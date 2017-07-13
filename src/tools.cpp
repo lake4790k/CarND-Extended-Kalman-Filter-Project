@@ -38,15 +38,13 @@ MatrixXd Tools::CalculateJacobian(const VectorXd &x_state) {
     float vx = x_state(2);
     float vy = x_state(3);
 
-
     float xy2 = px * px + py * py;
-    float sqrtXy2 = sqrt(xy2);
-    float sqrtXy32 = xy2 * sqrtXy2;
-
     if (fabs(xy2) < 0.0001) {
-        cout << "division by 0";
         return Hj;
     }
+
+    float sqrtXy2 = sqrt(xy2);
+    float sqrtXy32 = xy2 * sqrtXy2;
 
     Hj << px / sqrtXy2, py / sqrtXy2, 0, 0,
             -py / xy2, px / xy2, 0, 0,

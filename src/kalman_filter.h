@@ -47,6 +47,8 @@ private:
     Eigen::MatrixXd R_radar_;
     Eigen::MatrixXd H_laser_;
 
+    double lastDt_;
+
     void updateF(const double dt);
     void updateQ(const double dt);
 
